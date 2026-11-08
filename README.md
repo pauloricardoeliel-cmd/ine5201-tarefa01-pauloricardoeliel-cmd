@@ -85,17 +85,16 @@ connect_four.py
 
 ## Uso do GitHub Copilot
 
-<!-- PREENCHER com o que vocês realmente fizeram no VS Code. Apaguem os exemplos que não aconteceram. -->
+Usei o chat do GitHub Copilot no VS Code, no modo de perguntas, enquanto montava o projeto em etapas. Prompts usados:
 
-Usamos o GitHub Copilot no VS Code (chat e sugestões de autocompletar) como assistente durante o desenvolvimento. Exemplos de prompts que usamos:
-
-| Prompt | Para que usamos | O que aproveitamos ou mudamos |
+| Prompt | Para que usei | O que aproveitei ou mudei |
 |---|---|---|
-| "..." | | |
-| "..." | | |
-| "..." | | |
+| "Explique para que serve esta lista de direções em um jogo Connect Four" | Entender a lista `DIRECOES` | Entendi que cada par representa um passo na linha e na coluna. Não alterei o código. |
+| "Sugira melhorias para esta função de inserção de ficha" | Avaliar a função `inserir_ficha` | Descartei o `raise ValueError` para coluna inválida e mantive o retorno `-1` em vez de `None`. |
+| "Explique como funciona esta função verificar_vitoria" | Entender a detecção de vitória | Conferi a explicação com o código. Não alterei o código. |
+| "Como mudar a cor de um botão no FreeSimpleGUI?" | Personalizar a interface | Aceitei a sugestão de `button_color` e usei no botão Sair, com o vermelho do jogo. |
 
-**Relato.** <!-- Um parágrafo, em primeira pessoa, contando: em que partes o Copilot ajudou, uma sugestão que vocês aceitaram, uma que precisou ser corrigida ou rejeitada e por quê, e o que vocês aprenderam com isso. -->
+**Relato.** O Copilot me ajudou principalmente a entender partes do código, como a lista `DIRECOES` e a função `verificar_vitoria`, que percorre cada casa e testa as quatro direções. Aceitei a sugestão de usar `button_color` e apliquei essa opção ao botão Sair para destacá-lo. Descartei a sugestão de lançar `ValueError` em `inserir_ficha` quando a coluna fosse inválida, porque a interface só gera colunas de 0 a 6 e esse erro fecharia o jogo em vez de orientar o jogador. Com isso, aprendi que uma sugestão pode estar correta de forma geral e, mesmo assim, não ser necessária no programa.
 
 ## Tecnologias
 
