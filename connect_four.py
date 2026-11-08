@@ -256,7 +256,7 @@ def criar_janela():
                  justification='center', expand_x=True)],
         [sg.Button('Reiniciar Jogo', key='-REINICIAR-', size=(14, 1)),
          sg.Button('Zerar Placar', key='-ZERAR-', size=(14, 1)),
-         sg.Button('Sair', key='-SAIR-', size=(10, 1))],
+         sg.Button('Sair', key='-SAIR-', size=(10, 1), button_color=('white', '#E63946'))],
         [sg.Text('Clique na coluna ou use as teclas 1 a 7',
                  font=('Helvetica', 10), justification='center', expand_x=True)],
     ]
