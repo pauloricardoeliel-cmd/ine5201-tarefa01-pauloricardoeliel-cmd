@@ -78,3 +78,37 @@ def inserir_ficha(tabuleiro, coluna, jogador):
             return linha
     return -1
 
+
+def dentro_do_tabuleiro(linha, coluna):
+    return 0 <= linha < LINHAS and 0 <= coluna < COLUNAS
+
+
+def verificar_vitoria(tabuleiro, jogador):
+    """Procura 4 fichas seguidas do jogador em qualquer direção.
+
+    Para cada casa e cada direção de DIRECOES, monta as 4 posições
+    a partir daquela casa. Se todas estiverem dentro do tabuleiro e
+    pertencerem ao jogador, há vitória.
+
+    Retorna a lista com as 4 posições (linha, coluna) vencedoras,
+    ou uma lista vazia se não houver vitória.
+    """
+    for linha in range(LINHAS):
+        for coluna in range(COLUNAS):
+            for passo_l, passo_c in DIRECOES:
+                posicoes = [(linha + i * passo_l, coluna + i * passo_c)
+                            for i in range(SEQUENCIA)]
+                if all(dentro_do_tabuleiro(l, c) and tabuleiro[l][c] == jogador
+                       for l, c in posicoes):
+                    return posicoes
+    return []
+
+
+def tabuleiro_cheio(tabuleiro):
+    """Empate: todas as colunas estão cheias."""
+    return all(coluna_cheia(tabuleiro, c) for c in range(COLUNAS))
+
+
+def outro_jogador(jogador):
+    return 2 if jogador == 1 else 1
+
