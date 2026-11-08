@@ -48,3 +48,33 @@ DIRECOES = [
     (1, -1),   # diagonal    ↙
 ]
 
+
+# ============================== Lógica do jogo ==============================
+
+def criar_tabuleiro():
+    """Retorna uma matriz LINHAS x COLUNAS preenchida com VAZIO.
+
+    A linha 0 é a do topo e a linha LINHAS-1 é a do fundo.
+    Cada linha é criada separadamente; [[0]*7]*6 faria as 6 linhas
+    apontarem para a MESMA lista, e uma jogada apareceria em todas.
+    """
+    return [[VAZIO] * COLUNAS for _ in range(LINHAS)]
+
+
+def coluna_cheia(tabuleiro, coluna):
+    """Uma coluna está cheia quando a casa do topo já tem ficha."""
+    return tabuleiro[0][coluna] != VAZIO
+
+
+def inserir_ficha(tabuleiro, coluna, jogador):
+    """Solta a ficha do jogador na coluna, aplicando a gravidade.
+
+    Percorre a coluna de baixo para cima e ocupa a primeira casa vazia.
+    Retorna a linha onde a ficha parou, ou -1 se a coluna estiver cheia.
+    """
+    for linha in range(LINHAS - 1, -1, -1):
+        if tabuleiro[linha][coluna] == VAZIO:
+            tabuleiro[linha][coluna] = jogador
+            return linha
+    return -1
+
