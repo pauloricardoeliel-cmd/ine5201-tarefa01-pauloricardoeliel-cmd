@@ -112,3 +112,195 @@ def tabuleiro_cheio(tabuleiro):
 def outro_jogador(jogador):
     return 2 if jogador == 1 else 1
 
+
+# ============================== Interface gráfica ==============================
+
+def centro_da_casa(linha, coluna):
+    """Converte (linha, coluna) da matriz no centro da casa, em pixels."""
+    x = coluna * CELULA + CELULA // 2
+    y = TOPO + linha * CELULA + CELULA // 2
+    return x, y
+
+
+def desenhar_tabuleiro(window, tabuleiro, vencedoras=()):
+    """Redesenha o tabuleiro inteiro a partir da matriz.
+
+    vencedoras: posições que recebem um anel branco de destaque.
+    """
+    grafico = window['-TABULEIRO-']
+    grafico.erase()
+
+    # Números das colunas na faixa superior
+    for coluna in range(COLUNAS):
+        x = coluna * CELULA + CELULA // 2
+        grafico.draw_text(str(coluna + 1), (x, TOPO // 2),
+                          color='white', font=('Helvetica', 14, 'bold'))
+
+    # Fundo azul do tabuleiro
+    grafico.draw_rectangle((0, TOPO), (LARGURA, ALTURA),
+                           fill_color=COR_TABULEIRO, line_color=COR_TABULEIRO)
+
+    # Casas: vazias ou com a cor do jogador
+    for linha in range(LINHAS):
+        for coluna in range(COLUNAS):
+            valor = tabuleiro[linha][coluna]
+            cor = COR_VAZIO if valor == VAZIO else CORES_JOGADOR[valor]
+            grafico.draw_circle(centro_da_casa(linha, coluna), RAIO,
+                                fill_color=cor, line_color=COR_BORDA, line_width=2)
+
+    # Destaque das 4 fichas vencedoras
+    for linha, coluna in vencedoras:
+        grafico.draw_circle(centro_da_casa(linha, coluna), RAIO - 7,
+                            line_color=COR_DESTAQUE, line_width=5)
+
+
+def mostrar_status(window, texto, cor):
+    window['-STATUS-'].update(texto, text_color=cor)
+
+
+def mostrar_vez(window, jogador):
+    mostrar_status(window, f'Vez do Jogador {jogador} ({NOMES_JOGADOR[jogador]})',
+                   CORES_JOGADOR[jogador])
+
+
+def mostrar_placar(window, placar):
+    window['-PLACAR-'].update(
+        f'Placar  |  {NOMES_JOGADOR[1]}: {placar[1]}   '
+        f'{NOMES_JOGADOR[2]}: {placar[2]}   Empates: {placar["empates"]}'
+    )
+
+
+def novo_estado(quem_comeca=1):
+    """Agrupa tudo que muda durante uma partida em um dicionário."""
+    return {
+        'tabuleiro': criar_tabuleiro(),
+        'jogador': quem_comeca,
+        'quem_comeca': quem_comeca,
+        'ativo': True,     # False depois de vitória ou empate
+    }
+
+
+def jogar(window, estado, placar, coluna):
+    """Processa uma jogada na coluna escolhida."""
+    if not estado['ativo']:
+        return
+
+    tabuleiro = estado['tabuleiro']
+    jogador = estado['jogador']
+
+    # Validação de coluna cheia: avisa e NÃO passa a vez
+    if coluna_cheia(tabuleiro, coluna):
+        mostrar_status(window, f'Coluna {coluna + 1} cheia! Escolha outra.',
+                       CORES_JOGADOR[jogador])
+        return
+
+    inserir_ficha(tabuleiro, coluna, jogador)
+    vencedoras = verificar_vitoria(tabuleiro, jogador)
+    desenhar_tabuleiro(window, tabuleiro, vencedoras)
+
+    if vencedoras:
+        estado['ativo'] = False
+        placar[jogador] += 1
+        mensagem = f'Jogador {jogador} ({NOMES_JOGADOR[jogador]}) venceu!'
+        mostrar_status(window, mensagem, CORES_JOGADOR[jogador])
+        mostrar_placar(window, placar)
+        window.refresh()   # garante que o tabuleiro aparece antes do popup
+        sg.popup(mensagem, 'Clique em "Reiniciar Jogo" para jogar de novo.',
+                 title='Fim de jogo', keep_on_top=True)
+    elif tabuleiro_cheio(tabuleiro):
+        estado['ativo'] = False
+        placar['empates'] += 1
+        mostrar_status(window, 'Empate! O tabuleiro está cheio.', COR_EMPATE)
+        mostrar_placar(window, placar)
+        window.refresh()
+        sg.popup('Empate! Ninguém alinhou 4 fichas.',
+                 title='Fim de jogo', keep_on_top=True)
+    else:
+        estado['jogador'] = outro_jogador(jogador)
+        mostrar_vez(window, estado['jogador'])
+
+
+def coluna_do_evento(event, values):
+    """Descobre a coluna escolhida a partir de um clique ou tecla.
+
+    Retorna o índice da coluna (0 a 6) ou None se o evento não for jogada.
+    """
+    if event == '-TABULEIRO-':
+        x, _ = values['-TABULEIRO-']
+        if x is None:
+            return None
+        return min(max(int(x) // CELULA, 0), COLUNAS - 1)
+
+    # Teclas 1 a 7 (o FreeSimpleGUI devolve o caractere como evento)
+    if isinstance(event, str) and len(event) >= 1 and event[0] in '1234567':
+        if len(event) == 1 or event[1] == ':':
+            return int(event[0]) - 1
+
+    return None
+
+
+def criar_janela():
+    sg.theme('Black')
+
+    layout = [
+        [sg.Text('CONNECT FOUR', font=('Helvetica', 22, 'bold'),
+                 justification='center', expand_x=True)],
+        [sg.Text('', key='-STATUS-', font=('Helvetica', 14, 'bold'),
+                 justification='center', expand_x=True)],
+        [sg.Graph(canvas_size=(LARGURA, ALTURA),
+                  graph_bottom_left=(0, ALTURA),   # eixo y cresce para baixo,
+                  graph_top_right=(LARGURA, 0),    # igual aos índices da matriz
+                  background_color=COR_FUNDO,
+                  key='-TABULEIRO-', enable_events=True)],
+        [sg.Text('', key='-PLACAR-', font=('Helvetica', 12),
+                 justification='center', expand_x=True)],
+        [sg.Button('Reiniciar Jogo', key='-REINICIAR-', size=(14, 1)),
+         sg.Button('Zerar Placar', key='-ZERAR-', size=(14, 1)),
+         sg.Button('Sair', key='-SAIR-', size=(10, 1))],
+        [sg.Text('Clique na coluna ou use as teclas 1 a 7',
+                 font=('Helvetica', 10), justification='center', expand_x=True)],
+    ]
+
+    return sg.Window('INE5201 - Connect Four', layout, finalize=True,
+                     element_justification='center',
+                     return_keyboard_events=True)
+
+
+# ============================== Programa principal ==============================
+
+def main():
+    window = criar_janela()
+    placar = {1: 0, 2: 0, 'empates': 0}
+    estado = novo_estado(quem_comeca=1)
+
+    desenhar_tabuleiro(window, estado['tabuleiro'])
+    mostrar_vez(window, estado['jogador'])
+    mostrar_placar(window, placar)
+
+    while True:
+        event, values = window.read()
+
+        if event in (sg.WIN_CLOSED, '-SAIR-'):
+            break
+
+        if event == '-REINICIAR-':
+            # Quem começa alterna a cada partida, para ser justo
+            estado = novo_estado(outro_jogador(estado['quem_comeca']))
+            desenhar_tabuleiro(window, estado['tabuleiro'])
+            mostrar_vez(window, estado['jogador'])
+            continue
+
+        if event == '-ZERAR-':
+            placar = {1: 0, 2: 0, 'empates': 0}
+            mostrar_placar(window, placar)
+            continue
+
+        coluna = coluna_do_evento(event, values)
+        if coluna is not None:
+            jogar(window, estado, placar, coluna)
+
+    window.close()
+
+
+if __name__ == '__main__':
+    main()
