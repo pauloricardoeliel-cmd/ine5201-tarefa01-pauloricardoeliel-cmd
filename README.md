@@ -51,6 +51,7 @@ connect_four.py
 │   ├── criar_tabuleiro()
 │   ├── coluna_cheia(tabuleiro, coluna)
 │   ├── inserir_ficha(tabuleiro, coluna, jogador)
+│   ├── dentro_do_tabuleiro(linha, coluna)
 │   ├── verificar_vitoria(tabuleiro, jogador)
 │   ├── tabuleiro_cheio(tabuleiro)
 │   └── outro_jogador(jogador)
